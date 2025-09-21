@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHFA Copilot HK</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./icons/icon-192.png">
+    <meta name="theme-color" content="#d97706">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6; 
+            color: #44403c; 
+            background: linear-gradient(135deg, #fef7ed 0%, #fff7ed 100%);
+            min-height: 100vh;
+        }
+        .container { max-width: 768px; margin: 0 auto; padding: 1rem; }
+        .header { 
+            background: linear-gradient(135deg, #ea580c 0%, #d97706 100%); 
+            color: white; 
+            padding: 1rem; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(234, 88, 12, 0.1);
+        }
+        .header h1 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .lang-toggle { 
+            background: rgba(255,255,255,0.2); 
+            border: none; 
+            color: white; 
+            padding: 0.5rem 1rem; 
+            border-radius: 1rem; 
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .lang-toggle:hover { background: rgba(255,255,255,0.3); }
+        .crisis-banner { 
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
+            color: white; 
+            padding: 1rem; 
+            text-align: center; 
+            font-weight: bold;
+            display: none;
+            box-shadow: 0 2px 10px rgba(220, 38, 38, 0.2);
+        }
+        .crisis-banner.show { display: block; }
+        .nav-tabs { 
+            display: flex; 
+            background: rgba(255,255,255,0.9); 
+            border-bottom: 1px solid #fed7aa;
+            overflow-x: auto;
+            backdrop-filter: blur(10px);
+        }
+        .nav-tab { 
+            flex: 1; 
+            padding: 1rem; 
+            border: none; 
+            background: none; 
+            cursor: pointer; 
+            border-bottom: 2px solid transparent;
+            min-width: 80px;
+            font-size: 0.875rem;
+            color: #78716c;
+            transition: all 0.2s ease;
+        }
+        .nav-tab:hover { background: rgba(251, 146, 60, 0.1); }
+        .nav-tab.active { border-bottom-color: #ea580c; color: #ea580c; font-weight: 600; }
+        .tab-content { display: none; padding: 1rem; }
+        .tab-content.active { display: block; }
+        .chat-container { 
+            background: rgba(255,255,255,0.9); 
+            border-radius: 1rem; 
+            padding: 1.5rem; 
+            margin-bottom: 1rem; 
+            box-shadow: 0 4px 20px rgba(234, 88, 12, 0.1);
+            border: 1px solid #fed7aa;
+        }
+        .chat-input { 
+            width: 100%; 
+            min-height: 100px; 
+            padding: 1rem; 
+            border: 2px solid #fed7aa; 
+            border-radius: 1rem; 
+            resize: vertical;
+            font-family: inherit;
+            background: #fffbeb;
+            transition: border-color 0.2s ease;
+        }
+        .chat-input:focus { border-color: #fb923c; outline: none; }
+        .action-chips { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 0.5rem; 
+            margin: 1rem 0;
+        }
+        .chip { 
+            padding: 0.5rem 1rem; 
+            background: #fef3c7; 
+            border: 1px solid #fcd34d; 
+            border-radius: 2rem; 
+            cursor: pointer; 
+            font-size: 0.875rem;
+            min-height: 44px;
+            color: #92400e;
+            transition: all 0.2s ease;
+        }
+        .chip:hover { background: #fde68a; transform: translateY(-1px); }
+        .chip.active { background: linear-gradient(135deg, #ea580c 0%, #d97706 100%); color: white; border-color: #ea580c; }
+        .response-area { 
+            background: linear-gradient(135deg, #fef3c7 0%, #fef7ed 100%); 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            margin-top: 1rem;
+            min-height: 100px;
+            border: 1px solid #fcd34d;
+        }
+        .resource-item { 
+            background: rgba(255,255,255,0.9); 
+            padding: 1.5rem; 
+            margin-bottom: 1rem; 
+            border-radius: 1rem; 
+            border: 1px solid #fed7aa;
+            box-shadow: 0 2px 10px rgba(234, 88, 12, 0.05);
+            transition: transform 0.2s ease;
+        }
+        .resource-item:hover { transform: translateY(-2px); }
+        .resource-item h3 { margin-bottom: 0.5rem; color: #92400e; }
+        .resource-item p { font-size: 0.875rem; color: #78716c; margin-bottom: 0.5rem; }
+        .resource-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn { 
+            padding: 0.5rem 1rem; 
+            border-radius: 1rem; 
+            text-decoration: none; 
+            font-size: 0.875rem; 
+            cursor: pointer;
+            border: none;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: linear-gradient(135deg, #ea580c 0%, #d97706 100%); color: white; box-shadow: 0 2px 10px rgba(234, 88, 12, 0.2); }
+        .btn-secondary { background: linear-gradient(135deg, #a3a3a3 0%, #737373 100%); color: white; }
+        .btn-outline { background: white; color: #ea580c; border: 2px solid #ea580c; }
+        .filters { 
+            display: flex; 
+            gap: 0.5rem; 
+            margin-bottom: 1rem; 
+            flex-wrap: wrap;
+        }
+        .filter-select { 
+            padding: 0.5rem; 
+            border: 2px solid #fed7aa; 
+            border-radius: 1rem;
+            background: #fffbeb;
+            color: #92400e;
+        }
+        .screener-form { 
+            background: rgba(255,255,255,0.9); 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            margin-bottom: 1rem; 
+            border: 1px solid #fed7aa;
+            box-shadow: 0 2px 10px rgba(234, 88, 12, 0.05);
+        }
+        .screener-question { margin-bottom: 1rem; color: #92400e; }
+        .screener-options { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+        .screener-option { display: flex; align-items: center; gap: 0.5rem; }
+        .screener-result { 
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            margin-top: 1rem;
+            border-left: 4px solid #f59e0b;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.1);
+        }
+        .disclaimer { 
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            font-size: 0.875rem; 
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+            box-shadow: 0 2px 10px rgba(220, 38, 38, 0.1);
+        }
+        .hotline-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .hotline-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 1rem; 
+            background: rgba(255,255,255,0.9); 
+            border-radius: 1rem;
+            border: 1px solid #fed7aa;
+            box-shadow: 0 2px 10px rgba(234, 88, 12, 0.05);
+        }
+        @media (max-width: 640px) {
+            .container { padding: 0.5rem; }
+            .nav-tab { padding: 0.75rem 0.5rem; font-size: 0.75rem; }
+            .resource-actions { flex-direction: column; }
+            .filters { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 id="app-title">MHFA Copilot HK</h1>
+                <button class="lang-toggle" onclick="toggleLanguage()" id="lang-btn">English</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="crisis-banner" id="crisis-banner">
+        <span id="crisis-text">If there's immediate danger, call 999 now.</span>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showTab('chat')" id="tab-chat">Chat</button>
+        <button class="nav-tab" onclick="showTab('resources')" id="tab-resources">Resources</button>
+        <button class="nav-tab" onclick="showTab('screeners')" id="tab-screeners">Self-check</button>
+        <button class="nav-tab" onclick="showTab('about')" id="tab-about">About</button>
+    </div>
+
+    <div class="container">
+        <!-- Chat Tab -->
+        <div id="chat-content" class="tab-content active">
+            <div class="chat-container">
+                <textarea id="chat-input" class="chat-input" placeholder="Describe the situation or paste a message…"></textarea>
+                
+                <div class="action-chips">
+                    <button class="chip active" onclick="setStep('start')" id="chip-start">How to start</button>
+                    <button class="chip" onclick="setStep('listen')" id="chip-listen">Listen</button>
+                    <button class="chip" onclick="setStep('safety')" id="chip-safety">Check safety</button>
+                    <button class="chip" onclick="setStep('help')" id="chip-help">Encourage help</button>
+                    <button class="chip" onclick="setStep('summarize')" id="chip-summarize">Summarize</button>
+                </div>
+
+                <button class="btn btn-primary" onclick="generateResponse()" style="width: 100%; margin-top: 1rem;">
+                    <span id="generate-btn">Generate Suggestion</span>
+                </button>
+
+                <div class="response-area" id="response-area">
+                    <p id="response-placeholder">Your ALGEE-based suggestions will appear here...</p>
+                </div>
+            </div>
+
+            <div class="hotline-list" id="emergency-hotlines" style="display: none;">
+                <h3 id="hotlines-title">Emergency Hotlines</h3>
+                <div class="hotline-item">
+                    <span>999 Emergency</span>
+                    <a href="tel:999" class="btn btn-primary">Call</a>
+                </div>
+                <div class="hotline-item">
+                    <span>Samaritans (24/7)</span>
+                    <a href="tel:28960000" class="btn btn-primary">Call</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources Tab -->
+        <div id="resources-content" class="tab-content">
+            <div class="filters">
+                <select class="filter-select" id="audience-filter" onchange="filterResources()">
+                    <option value="">All audiences</option>
+                    <option value="youth">Youth</option>
+                    <option value="adult">Adult</option>
+                    <option value="older">Older adults</option>
+                </select>
+                <select class="filter-select" id="language-filter" onchange="filterResources()">
+                    <option value="">All languages</option>
+                    <option value="cantonese">Cantonese</option>
+                    <option value="english">English</option>
+                </select>
+                <select class="filter-select" id="cost-filter" onchange="filterResources()">
+                    <option value="">All costs</option>
+                    <option value="free">Free</option>
+                    <option value="low">Low cost</option>
+                </select>
+            </div>
+            <div id="resources-list"></div>
+        </div>
+
+        <!-- Screeners Tab -->
+        <div id="screeners-content" class="tab-content">
+            <div class="disclaimer">
+                <strong>Important:</strong> <span id="screener-disclaimer">These are screening tools only, not diagnostic tests. If you're in immediate danger, call 999.</span>
+            </div>
+
+            <div class="screener-form">
+                <h3 id="phq2-title">PHQ-2 Depression Screening</h3>
+                <div id="phq2-questions"></div>
+                <button class="btn btn-primary" onclick="calculatePHQ2()" id="phq2-calculate">Calculate Score</button>
+                <div id="phq2-result"></div>
+            </div>
+
+            <div class="screener-form">
+                <h3 id="gad2-title">GAD-2 Anxiety Screening</h3>
+                <div id="gad2-questions"></div>
+                <button class="btn btn-primary" onclick="calculateGAD2()" id="gad2-calculate">Calculate Score</button>
+                <div id="gad2-result"></div>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about-content" class="tab-content">
+            <div class="disclaimer">
+                <h3 id="about-title">About & Safety</h3>
+                <p id="about-disclaimer">This app provides Mental Health First Aid guidance and resources. It is not medical advice or therapy. In an emergency, call 999.</p>
+            </div>
+
+            <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                <h4 id="privacy-title">Privacy & Data</h4>
+                <p id="privacy-text">This app runs entirely in your browser. No personal data is collected or transmitted. Only your language preference is stored locally.</p>
+                <button class="btn btn-outline" onclick="clearLocalData()" style="margin-top: 1rem;" id="clear-data">Clear Local Data</button>
+            </div>
+
+            <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                <h4>Version</h4>
+                <p>MHFA Copilot HK v1.0 - December 2024</p>
+                <p>Based on Mental Health First Aid Australia guidelines</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+    </script>
+</body>
+</html>
